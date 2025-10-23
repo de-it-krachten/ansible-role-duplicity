@@ -1,0 +1,11 @@
+---
+
+- name: Install required duplicity packages
+  ansible.builtin.package:
+    name: "{{ duplicity_packages }}"
+    state: present
+
+- name: Install optional duplicity packages
+  ansible.builtin.package:
+    name: "{{ duplicity_packages_optional }}"
+    state: present

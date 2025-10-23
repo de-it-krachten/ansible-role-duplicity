@@ -1,0 +1,380 @@
+---
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - master
+      - main
+  workflow_dispatch:
+  schedule:
+    - cron: "0 7 * * 1"
+
+defaults:
+  run:
+    working-directory: "de-it-krachten/ansible-role-duplicity"
+
+
+jobs:
+
+  lint:
+    name: "${{ matrix.name }}"
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "ansible_2.17"
+            # ansible: "ansible>10,<11"
+            ansible: "ansible-core>2.17,<2.18"
+            ansible_lint: "ansible-lint"
+          - name: "ansible_2.18"
+            # ansible: "ansible>11,<12"
+            ansible: "ansible-core>2.18,<2.19"
+            ansible_lint: "ansible-lint"
+
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+        with:
+          path: "${{ github.repository }}"
+
+      - name: Set up Python 3.
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+
+      - name: Show runner info
+        run: |
+
+          hostname="$(hostname -f)"
+          eval os_name=$(awk -F= '/^NAME=/ {print $2}' /etc/os-release)
+          eval os_version=$(awk -F= '/^VERSION=/ {print $2}' /etc/os-release)
+          os="$os_name $os_version"
+          user="$(id -un)"
+          python=$(which python3)
+
+          echo "hostname : $hostname"
+          echo "user     : $user"
+          echo "os       : $os"
+          echo "python   : $python ($(python3 --version))"
+
+      - name: Disable specific apparmor profiles
+        run: |
+          sudo ln -s /etc/apparmor.d/usr.sbin.mysqld /etc/apparmor.d/disable/
+          sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
+
+      - name: Install test dependencies.
+        run: |
+          sudo rm -f /usr/bin/yq
+          python3 -m venv ~/.venv
+          source ~/.venv/bin/activate
+          pip3 install pip wheel setuptools --upgrade
+          pip3 install "${{ matrix.ansible }}" "${{ matrix.ansible_lint }}" yamllint jmespath yq e2j2 jinja2-ansible-filters
+          pip3 list
+
+      - name: Retrieve & install wrapper scripts
+        run: |
+          set -e
+
+          # Install requirements
+          sudo apt install curl jq -y
+
+          # Get latest release download URL for .deb asset
+          api_url="https://api.github.com/repos/de-it-krachten/cicd-tools/releases/latest"
+          url=$(curl -s $api_url | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url')
+          file=$(basename $url)
+          curl -s -L -o $file -s $url
+          echo "Install package '$file'"
+          sudo dpkg -i $file
+
+      - name: Install required galaxy collections
+        run: |
+          source ~/.venv/bin/activate
+          /usr/local/bin/ansible-collections.sh
+
+      - name: For ansible 2.9, we need to perform some tweaking
+        run: |
+          source ~/.venv/bin/activate
+          ansible=$(pip show ansible 2>/dev/null | awk '/Version:/ {print $2}')
+          ansible_core=$(pip show ansible-core 2>/dev/null | awk '/Version:/ {print $2}')
+          ansible=${ansible:-$ansible_core}
+          echo "Ansible version = $ansible"
+          if [[ $ansible =~ 2.9.* ]]
+          then
+            echo "Patching for Rocky support"
+            site=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
+            sed -i "s/'AlmaLinux'\],/'AlmaLinux', 'Rocky'\],/" $site/ansible/module_utils/facts/system/distribution.py
+            echo "Downgrading 'community.general' to '3.8.3'"
+            ansible-galaxy collection install community.general:3.8.3 --force
+          else
+            echo "No need to patch it"
+          fi
+
+      - name: Show component versions
+        run: |
+          source ~/.venv/bin/activate
+          ansible --version
+          ansible-lint --version
+          yamllint --version
+
+      - name: Lint code.
+        run: |
+          set -e
+          source ~/.venv/bin/activate
+          yamllint .
+          /usr/local/bin/ansible-lint.sh
+
+  molecule:
+    name: "${{ matrix.name }}"
+    runs-on: "${{ matrix.runs_on }}"
+    needs: lint
+    # continue-on-error: ${{ matrix.continue_on_error }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: rockylinux8
+            runs_on: ubuntu-22.04
+            distro: rockylinux8
+            playbook: converge.yml
+            ansible: "ansible-core>2.16,<2.17"
+            ansible_lint: "ansible-lint>6,<7"
+            hetznercloud: True
+
+          - name: rockylinux9
+            runs_on: ubuntu-22.04
+            distro: rockylinux9
+            playbook: converge.yml
+            ansible: "ansible-core>2.18,<2.19"
+            ansible_lint: "ansible-lint"
+            hetznercloud: True
+
+          - name: oraclelinux8
+            runs_on: ubuntu-22.04
+            distro: oraclelinux8
+            playbook: converge.yml
+            ansible: "ansible-core>2.16,<2.17"
+            ansible_lint: "ansible-lint>6,<7"
+            hetznercloud: False
+
+          - name: oraclelinux9
+            runs_on: ubuntu-22.04
+            distro: oraclelinux9
+            playbook: converge.yml
+            ansible: "ansible-core>2.18,<2.19"
+            ansible_lint: "ansible-lint"
+            hetznercloud: False
+
+          - name: almalinux8
+            runs_on: ubuntu-22.04
+            distro: almalinux8
+            playbook: converge.yml
+            ansible: "ansible-core>2.16,<2.17"
+            ansible_lint: "ansible-lint>6,<7"
+            hetznercloud: False
+
+          - name: almalinux9
+            runs_on: ubuntu-22.04
+            distro: almalinux9
+            playbook: converge.yml
+            ansible: "ansible-core>2.18,<2.19"
+            ansible_lint: "ansible-lint"
+            hetznercloud: False
+
+          - name: opensuse15
+            runs_on: ubuntu-22.04
+            distro: opensuse15
+            playbook: converge.yml
+            ansible: "ansible-core>2.16,<2.17"
+            ansible_lint: "ansible-lint>6,<7"
+            hetznercloud: False
+
+          - name: debian11
+            runs_on: ubuntu-22.04
+            distro: debian11
+            playbook: converge.yml
+            ansible: "ansible-core>2.18,<2.19"
+            ansible_lint: "ansible-lint"
+            hetznercloud: True
+
+          - name: debian12
+            runs_on: ubuntu-22.04
+            distro: debian12
+            playbook: converge.yml
+            ansible: "ansible-core>2.18,<2.19"
+            ansible_lint: "ansible-lint"
+            hetznercloud: True
+
+          - name: debian13
+            runs_on: ubuntu-22.04
+            distro: debian13
+            playbook: converge.yml
+            ansible: "ansible-core>2.18,<2.19"
+            ansible_lint: "ansible-lint"
+            hetznercloud: True
+
+          - name: ubuntu2204
+            runs_on: ubuntu-22.04
+            distro: ubuntu2204
+            playbook: converge.yml
+            ansible: "ansible-core>2.18,<2.19"
+            ansible_lint: "ansible-lint"
+            hetznercloud: True
+
+          - name: ubuntu2404
+            runs_on: ubuntu-22.04
+            distro: ubuntu2404
+            playbook: converge.yml
+            ansible: "ansible-core>2.18,<2.19"
+            ansible_lint: "ansible-lint"
+            hetznercloud: True
+
+          - name: fedora41
+            runs_on: ubuntu-22.04
+            distro: fedora41
+            playbook: converge.yml
+            ansible: "ansible-core>2.18,<2.19"
+            ansible_lint: "ansible-lint"
+            hetznercloud: True
+
+          - name: fedora42
+            runs_on: ubuntu-22.04
+            distro: fedora42
+            playbook: converge.yml
+            ansible: "ansible-core>2.18,<2.19"
+            ansible_lint: "ansible-lint"
+            hetznercloud: True
+
+
+    steps:
+
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+        with:
+          path: "${{ github.repository }}"
+
+
+      - name: Set up Python 3.
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+
+      - name: Show runner info
+        run: |
+
+          hostname="$(hostname -f)"
+          eval os_name=$(awk -F= '/^NAME=/ {print $2}' /etc/os-release)
+          eval os_version=$(awk -F= '/^VERSION=/ {print $2}' /etc/os-release)
+          os="$os_name $os_version"
+          user="$(id -un)"
+          python=$(which python3)
+
+          echo "hostname : $hostname"
+          echo "user     : $user"
+          echo "os       : $os"
+          echo "python   : $python ($(python3 --version))"
+
+      - name: Disable specific apparmor profiles
+        run: |
+          sudo ln -s /etc/apparmor.d/usr.sbin.mysqld /etc/apparmor.d/disable/
+          sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
+
+      - name: Install test dependencies.
+        run: |
+          sudo rm -f /usr/bin/yq
+          python3 -m venv ~/.venv
+          source ~/.venv/bin/activate
+          pip3 install pip wheel setuptools --upgrade
+          pip3 install yq e2j2 jinja2-ansible-filters passlib
+          # pip3 install "${{ matrix.ansible }}" "${{ matrix.ansible_lint }}" "ansible-compat<4" "molecule<5" yamllint jmespath
+          pip3 install "${{ matrix.ansible }}" "${{ matrix.ansible_lint }}" yamllint jmespath molecule
+
+          echo "MOLECULE_DRIVER = $MOLECULE_DRIVER"
+          if [[ $MOLECULE_DRIVER == 'hetznercloud' ]] ; then
+            pip3 install molecule-hetznercloud
+            ansible-galaxy collection install hetzner.hcloud community.crypto
+            site=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
+            createyml_file=$site/molecule_hetznercloud/playbooks/create.yml
+            createyml_url=https://raw.githubusercontent.com/de-it-krachten/molecule-hetznercloud/sshkey/molecule_hetznercloud/playbooks/create.yml
+            sudo apt install curl
+            curl -s -o $createyml_file $createyml_url
+          elif [[ $MOLECULE_DRIVER == 'vagrant' ]] ; then
+            pip3 install molecule-vagrant
+          elif [[ $MOLECULE_DRIVER == 'podman' ]] ; then
+            pip3 install molecule-podman
+          else
+            pip3 install molecule-docker
+          fi
+
+          pip3 install "requests<2.29" "urllib3<2"
+
+          pip3 list
+        env:
+          MOLECULE_DRIVER: ${{ vars.MOLECULE_DRIVER }}
+
+      - name: Retrieve & install wrapper scripts
+        run: |
+          set -e
+
+          # Install requirements
+          sudo apt install curl jq -y
+
+          # Get latest release download URL for .deb asset
+          api_url="https://api.github.com/repos/de-it-krachten/cicd-tools/releases/latest"
+          url=$(curl -s $api_url | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url')
+          file=$(basename $url)
+          curl -s -L -o $file -s $url
+          echo "Install package '$file'"
+          sudo dpkg -i $file
+
+      - name: Install required galaxy collections
+        run: |
+          source ~/.venv/bin/activate
+          /usr/local/bin/ansible-collections.sh
+
+      - name: For ansible 2.9, we need to perform some tweaking
+        run: |
+          source ~/.venv/bin/activate
+          ansible=$(pip show ansible 2>/dev/null | awk '/Version:/ {print $2}')
+          ansible_core=$(pip show ansible-core 2>/dev/null | awk '/Version:/ {print $2}')
+          ansible=${ansible:-$ansible_core}
+          echo "Ansible version = $ansible"
+          if [[ $ansible =~ 2.9.* ]]
+          then
+            echo "Patching for Rocky support"
+            site=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
+            sed -i "s/'AlmaLinux'\],/'AlmaLinux', 'Rocky'\],/" $site/ansible/module_utils/facts/system/distribution.py
+            echo "Downgrading 'community.general' to '3.8.3'"
+            ansible-galaxy collection install community.general:3.8.3 --force
+          else
+            echo "No need to patch it"
+          fi
+
+      - name: Set-up github runner
+        run: |
+          sudo modprobe ip6table_filter
+
+      - name: Show component versions
+        run: |
+          source ~/.venv/bin/activate
+          ansible --version
+          ansible-lint --version
+          yamllint --version
+          molecule --version
+
+      - name: Run Molecule tests.
+        run: |
+          source ~/.venv/bin/activate
+          /usr/local/bin/molecule-test.sh -A
+        env:
+          PY_COLORS: '1'
+          ANSIBLE_FORCE_COLOR: '1'
+          MOLECULE_DISTRO: ${{ matrix.distro }}
+          MOLECULE_PLAYBOOK: ${{ matrix.playbook }}
+          HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+          MOLECULE_DRIVER: ${{ vars.MOLECULE_DRIVER }}

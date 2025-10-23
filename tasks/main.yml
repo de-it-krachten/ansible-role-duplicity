@@ -1,0 +1,10 @@
+---
+
+- name: Load variables based on OS type
+  ansible.builtin.include_tasks: vars.yml
+
+- name: Installation
+  ansible.builtin.include_tasks: install.yml
+
+- name: Configuration
+  ansible.builtin.include_tasks: config.yml

@@ -1,0 +1,128 @@
+---
+
+# Generic
+generic:
+  role: ansible-role-duplicity
+  role_short: duplicity
+  role_description: |
+    <basic role description>
+  collections: []
+
+# Supported platforms# Supported platforms
+platforms:
+#  rhel7:
+#    ci: false
+#    supported: false
+#  rhel8:
+#    ci: false
+#    supported: false
+#  rhel9:
+#    ci: false
+#    supported: false
+  rhel10:
+    ci: false
+    supported: false
+#  centos7:
+#    ci: false
+#    supported: false
+#  centos8:
+#    ci: false
+#    supported: false
+#  centos8s:
+#    ci: false
+#    supported: false
+#  centos9s:
+#    ci: false
+#    supported: false
+#  centos10s:
+#    ci: false
+#    supported: false
+#  rockylinux8:
+#    ci: false
+#    supported: false
+#  rockylinux9:
+#    ci: false
+#    supported: false
+  rockylinux10:
+    ci: false
+    supported: false
+#  oraclelinux8:
+#    ci: false
+#    supported: false
+#  oraclelinux9:
+#    ci: false
+#    supported: false
+  oraclelinux10:
+    ci: false
+    supported: false
+#  almalinux8:
+#    ci: false
+#    supported: false
+#  almalinux9:
+#    ci: false
+#    supported: false
+  almalinux10:
+    ci: false
+    supported: false
+#  sles15:
+#    ci: false
+#    supported: false
+#  opensuse15:
+#    ci: false
+#    supported: false
+#  debian10:
+#    ci: false
+#    supported: false
+#  debian11:
+#    ci: false
+#    supported: false
+#  debian12:
+#    ci: false
+#    supported: false
+#  debian13:
+#    ci: false
+#    supported: false
+#  ubuntu1804:
+#    ci: false
+#    supported: false
+#  ubuntu2004:
+#    ci: false
+#    supported: false
+#  ubuntu2204:
+#    ci: false
+#    supported: false
+#  ubuntu2404:
+#    ci: false
+#    supported: false
+#  fedora41:
+#    ci: false
+#    supported: false
+#  fedora42:
+#    ci: false
+#    supported: false
+#  alpine3:
+#    ci: false
+#    supported: false
+#  docker:
+#    ci: false
+#    supported: false
+#  win2012r2:
+#    ci: false
+#    supported: false
+#  win2016:
+#    ci: false
+#    supported: false
+#  win2019:
+#    ci: false
+#    supported: false
+#  win2022:
+#    ci: false
+#    supported: false
+#  win2025:
+#    ci: false
+#    supported: false
+
+# Molecule
+molecule:
+  requirements:
+    roles_extra: []
