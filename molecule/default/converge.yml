@@ -1,0 +1,9 @@
+---
+
+- name: Converge
+  hosts: all
+  become: "yes"
+  tasks:
+    - name: Include role 'ansible-role-duplicity'
+      ansible.builtin.include_role:
+        name: ansible-role-duplicity

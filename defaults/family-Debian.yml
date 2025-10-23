@@ -1,0 +1,5 @@
+---
+
+# List of optional duplicity packages
+duplicity_packages_optional:
+  - par2

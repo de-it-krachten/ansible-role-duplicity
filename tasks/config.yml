@@ -1,0 +1,12 @@
+---
+
+- name: Distribute scripts
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /usr/local/bin/{{ item }}
+    owner: root
+    group: root
+    mode: "0555"
+  loop:
+    - duplicity.sh
+    - functions.sh

@@ -1,0 +1,5 @@
+---
+
+# List of required duplicity packages
+duplicity_packages:
+  - duplicity
