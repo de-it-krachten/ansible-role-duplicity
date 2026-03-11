@@ -3,3 +3,9 @@
 # List of required duplicity packages
 duplicity_packages:
   - duplicity
+
+# Location to write backup to
+# duplicity_backup_location: /backup
+
+# Backup schedules
+duplicity_backup_schedules: []

@@ -277,7 +277,7 @@ function Get_passphrase
       fi
     else 
       [[ -n $SUDO_USER ]] && export PASSWORD_STORE_DIR=/home/$SUDO_USER/.password-store
-      export PASSPHRASE="`pass ls $Credential`"
+      export PASSPHRASE="$(pass ls $Credential)"
     fi
   fi
 

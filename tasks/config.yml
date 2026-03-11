@@ -10,3 +10,12 @@
   loop:
     - duplicity.sh
     - functions.sh
+
+- name: Setup backup location
+  ansible.builtin.file:
+    path: "{{ duplicity_backup_location }}"
+    state: directory
+    owner: root
+    group: "{{ backup_group }}"
+    mode: "2750"
+  when: duplicity_backup_location is defined
