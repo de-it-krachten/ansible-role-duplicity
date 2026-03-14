@@ -1,0 +1,14 @@
+---
+
+- name: Schedule backup
+  ansible.builtin.cron:
+    name: "{{ item.name }}"
+    minute: "{{ item.minute }}"
+    hour: "{{ item.hour }}"
+    day: "{{ item.day }}"
+    month: "{{ item.month }}"
+    weekday: "{{ item.weekday }}"
+    user: "{{ item.user }}"
+    job: "{{ item.job }}"
+    cron_file: "{{ item.cron_file }}"
+  loop: "{{ duplicity_backup_schedules }}"

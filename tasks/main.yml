@@ -8,3 +8,6 @@
 
 - name: Configuration
   ansible.builtin.include_tasks: config.yml
+
+- name: Schedule
+  ansible.builtin.include_tasks: schedule.yml

@@ -28,17 +28,20 @@ Supported platforms
 - AlmaLinux 8
 - AlmaLinux 9
 - SUSE Linux Enterprise 15<sup>1</sup>
+- SUSE Linux Enterprise 16<sup>1</sup>
 - openSUSE Leap 15
+- openSUSE Leap 16
 - Debian 11 (Bullseye)
 - Debian 12 (Bookworm)
 - Debian 13 (Trixie)
 - Ubuntu 22.04 LTS
 - Ubuntu 24.04 LTS
-- Fedora 41
 - Fedora 42
+- Fedora 43
 
 Note:
 <sup>1</sup> : no automated testing is performed on these platforms
+
 
 ## Role Variables
 ### defaults/main.yml
@@ -46,6 +49,12 @@ Note:
 # List of required duplicity packages
 duplicity_packages:
   - duplicity
+
+# Location to write backup to
+# duplicity_backup_location: /backup
+
+# Backup schedules
+duplicity_backup_schedules: []
 </pre></code>
 
 ### defaults/family-Debian.yml
