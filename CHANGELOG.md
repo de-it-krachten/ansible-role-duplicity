@@ -1,3 +1,13 @@
+# [1.2.0](https://github.com/de-it-krachten/ansible-role-duplicity/compare/v1.1.0...v1.2.0) (2026-03-15)
+
+
+### Features
+
+* Drop support for openSUSE Leap 15 ([786ce8e](https://github.com/de-it-krachten/ansible-role-duplicity/commit/786ce8e22c450e3f88d906661bc0878c0a5393de))
+* Drop support for openSUSE Leap 16 ([0932a2d](https://github.com/de-it-krachten/ansible-role-duplicity/commit/0932a2d079e03c4b2b5e5ca38aad1cccdb06db2f))
+* Drop support for SUSE Linux Enterprise 15 ([c7592b4](https://github.com/de-it-krachten/ansible-role-duplicity/commit/c7592b40de591372dc0c4211c4118809854adfce))
+* Drop support for SUSE Linux Enterprise 16 ([3cf57b1](https://github.com/de-it-krachten/ansible-role-duplicity/commit/3cf57b183f947b6ace6fe33740f129cc64dd8eb6))
+
 # [1.1.0](https://github.com/de-it-krachten/ansible-role-duplicity/compare/v1.0.0...v1.1.0) (2026-03-14)
 
 
