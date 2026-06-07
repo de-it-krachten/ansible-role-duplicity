@@ -386,9 +386,10 @@ Use_encryption=true
 Period=quarterly
 Multiple=false
 Umask=027
+Ulimit=4096
 
 # parse command line into arguments and check results of parsing
-while getopts :a:b:c:dDe:E:FhI:km:MNpPrRs:StT:u:vxy:z: OPT
+while getopts :a:b:c:dDe:E:FhI:km:MNpPrRs:StT:u:U:vxy:z: OPT
 do
    case $OPT in
      a) Duplicity_args="$OPTARG"
@@ -447,6 +448,8 @@ do
         ;;
      u) Umask=$OPTARG
         ;;
+     U) Ulimit=$OPTARG
+        ;;
      v) Verbose=true
         Verbose_level=$(($Verbose_level+1))
         Verbose1="-v"
@@ -472,6 +475,7 @@ shift $(($OPTIND -1))
 
 # Set umask
 umask $Umask
+ulimit -n $Ulimit
 
 #Test_flag req c 
 Test_flag req m
