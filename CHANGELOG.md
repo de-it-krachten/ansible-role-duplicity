@@ -1,3 +1,17 @@
+# [1.3.0](https://github.com/de-it-krachten/ansible-role-duplicity/compare/v1.2.0...v1.3.0) (2026-07-23)
+
+
+### Bug Fixes
+
+* Standarize vars.yml ([f76875d](https://github.com/de-it-krachten/ansible-role-duplicity/commit/f76875d4b82c67b1d3392bd82ae9541be4e26be2))
+
+
+### Features
+
+* Added support for Fedora 44 ([5b5ad87](https://github.com/de-it-krachten/ansible-role-duplicity/commit/5b5ad87c5edcf227c0f13d41cd7b34b8c915c71b))
+* Added support for Ubuntu 26.04 LTS ([3f24270](https://github.com/de-it-krachten/ansible-role-duplicity/commit/3f24270210552fba326952ab152c5bd607bcfe15))
+* Drop support for Fedora 42 ([03990b5](https://github.com/de-it-krachten/ansible-role-duplicity/commit/03990b5c1f3f57369cb6b06ae639fd0bf466f536))
+
 # [1.2.0](https://github.com/de-it-krachten/ansible-role-duplicity/compare/v1.1.0...v1.2.0) (2026-03-15)
 
 
