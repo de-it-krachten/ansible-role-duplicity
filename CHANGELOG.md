@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/de-it-krachten/ansible-role-duplicity/compare/v1.3.0...v1.4.0) (2026-10-13)
+
+
+### Features
+
+* Drop support for Debian 11 (Bullseye) ([6dc8606](https://github.com/de-it-krachten/ansible-role-duplicity/commit/6dc86065e40ab231e19e7a211fd60eb45113896f))
+
 # [1.3.0](https://github.com/de-it-krachten/ansible-role-duplicity/compare/v1.2.0...v1.3.0) (2026-07-23)
 
 
